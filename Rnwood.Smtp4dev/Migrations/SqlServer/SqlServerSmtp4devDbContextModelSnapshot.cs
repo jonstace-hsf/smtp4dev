@@ -227,7 +227,7 @@ namespace Rnwood.Smtp4dev.Migrations.SqlServer
                     b.HasOne("Rnwood.Smtp4dev.DbModel.Mailbox", "Mailbox")
                         .WithMany()
                         .HasForeignKey("MailboxId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Rnwood.Smtp4dev.DbModel.Session", "Session")
                         .WithMany()

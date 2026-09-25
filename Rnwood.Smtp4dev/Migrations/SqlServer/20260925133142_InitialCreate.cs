@@ -113,8 +113,7 @@ namespace Rnwood.Smtp4dev.Migrations.SqlServer
                         name: "FK_Messages_Mailboxes_MailboxId",
                         column: x => x.MailboxId,
                         principalTable: "Mailboxes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Messages_Sessions_SessionId",
                         column: x => x.SessionId,

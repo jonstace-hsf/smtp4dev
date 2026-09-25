@@ -12,7 +12,7 @@ using Rnwood.Smtp4dev.Data;
 namespace Rnwood.Smtp4dev.Migrations.SqlServer
 {
     [DbContext(typeof(SqlServerSmtp4devDbContext))]
-    [Migration("20260925081254_InitialCreate")]
+    [Migration("20260925133142_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -230,7 +230,7 @@ namespace Rnwood.Smtp4dev.Migrations.SqlServer
                     b.HasOne("Rnwood.Smtp4dev.DbModel.Mailbox", "Mailbox")
                         .WithMany()
                         .HasForeignKey("MailboxId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Rnwood.Smtp4dev.DbModel.Session", "Session")
                         .WithMany()
