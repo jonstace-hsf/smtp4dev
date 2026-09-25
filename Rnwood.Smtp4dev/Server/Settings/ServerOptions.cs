@@ -23,6 +23,14 @@ namespace Rnwood.Smtp4dev.Server.Settings
         public string BindAddress { get; set; }
 
         public string Database { get => database?.Trim('"'); set => database = value; }
+
+        /// <summary>
+        /// Selects the Entity Framework Core provider used for the message/session database.
+        /// When <see cref="Data.DatabaseProvider.Sqlite"/> (the default), <see cref="Database"/> is a
+        /// file path (empty means an in-memory shared-cache database). When
+        /// <see cref="Data.DatabaseProvider.SqlServer"/>, <see cref="Database"/> is a full ADO.NET connection string.
+        /// </summary>
+        public Data.DatabaseProvider DatabaseProvider { get; set; } = Data.DatabaseProvider.Sqlite;
         public int NumberOfMessagesToKeep { get; set; } = 100;
         public int NumberOfSessionsToKeep { get; set; } = 100;
 

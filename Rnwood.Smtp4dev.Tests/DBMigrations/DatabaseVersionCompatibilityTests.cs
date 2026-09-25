@@ -22,7 +22,7 @@ namespace Rnwood.Smtp4dev.Tests.DBMigrations
         public void ValidateDatabaseVersionCompatibility_InMemoryDatabase_ShouldSkipCheck()
         {
             // Arrange & Act
-            using var context = new Smtp4devDbContext(_sqlLiteForTesting.ContextOptions);
+            using var context = new SqliteSmtp4devDbContext(_sqlLiteForTesting.ContextOptions);
             
             // This should not throw an exception since in-memory databases skip the version check
             var validateMethod = typeof(Rnwood.Smtp4dev.Startup).GetMethod(
@@ -39,7 +39,7 @@ namespace Rnwood.Smtp4dev.Tests.DBMigrations
         public void ValidateDatabaseVersionCompatibility_CompatibleDatabase_ShouldNotThrow()
         {
             // Arrange - create a database with a known migration
-            using var context = new Smtp4devDbContext(_sqlLiteForTesting.ContextOptions);
+            using var context = new SqliteSmtp4devDbContext(_sqlLiteForTesting.ContextOptions);
             
             // Act - validate the database compatibility
             var validateMethod = typeof(Rnwood.Smtp4dev.Startup).GetMethod(
@@ -56,7 +56,7 @@ namespace Rnwood.Smtp4dev.Tests.DBMigrations
         public void ValidateDatabaseVersionCompatibility_DatabaseWithUnknownMigration_ShouldThrow()
         {
             // Arrange - create a database and simulate it having an unknown migration
-            using var context = new Smtp4devDbContext(_sqlLiteForTesting.ContextOptions);
+            using var context = new SqliteSmtp4devDbContext(_sqlLiteForTesting.ContextOptions);
             
             // Add a fake migration to the __EFMigrationsHistory table
             var fakeMigrationId = "99999999999999_FutureVersionMigration";

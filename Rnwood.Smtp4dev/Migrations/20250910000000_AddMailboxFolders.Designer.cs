@@ -10,7 +10,7 @@ using Rnwood.Smtp4dev.Data;
 
 namespace Rnwood.Smtp4dev.Migrations
 {
-    [DbContext(typeof(Smtp4devDbContext))]
+    [DbContext(typeof(SqliteSmtp4devDbContext))]
     partial class AddMailboxFolders
     {
         /// <inheritdoc />

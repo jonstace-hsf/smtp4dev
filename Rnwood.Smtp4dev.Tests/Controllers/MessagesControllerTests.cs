@@ -203,7 +203,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
             MessagesRepository messagesRepository =
                 new MessagesRepository(Substitute.For<ITaskQueue>(), Substitute.For<NotificationsHub>(), context);
             messagesRepository.DbContext.Messages.AddRange(testMessage1, testMessage2, testMessage3);
@@ -221,7 +221,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
             DbModel.Message testMessage2 = await GetTestMessageWithExtras("Subject2", cc: "anothercc@example.com");
             DbModel.Message testMessage3 = await GetTestMessage("Subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
             MessagesRepository messagesRepository =
                 new MessagesRepository(Substitute.For<ITaskQueue>(), Substitute.For<NotificationsHub>(), context);
             messagesRepository.DbContext.Messages.AddRange(testMessage1, testMessage2, testMessage3);
@@ -239,7 +239,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
             DbModel.Message testMessage2 = await GetTestMessageWithExtras("Subject2", htmlBody: "<html>Different content</html>", textBody: "Also different");
             DbModel.Message testMessage3 = await GetTestMessageWithExtras("Subject3", htmlBody: "<html>Normal</html>", textBody: "Unique search content here in plain text");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
             MessagesRepository messagesRepository =
                 new MessagesRepository(Substitute.For<ITaskQueue>(), Substitute.For<NotificationsHub>(), context);
             messagesRepository.DbContext.Messages.AddRange(testMessage1, testMessage2, testMessage3);
@@ -257,7 +257,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
             DbModel.Message testMessage2 = await GetTestMessageWithExtras("Subject2", attachmentFileName: "regular-file.txt");
             DbModel.Message testMessage3 = await GetTestMessage("Subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
             MessagesRepository messagesRepository =
                 new MessagesRepository(Substitute.For<ITaskQueue>(), Substitute.For<NotificationsHub>(), context);
             messagesRepository.DbContext.Messages.AddRange(testMessage1, testMessage2, testMessage3);
@@ -484,7 +484,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
         {
             // Arrange
             var sqliteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqliteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqliteForTesting.ContextOptions);
             context.Database.Migrate();
 
             var messagesRepository = new MessagesRepository(Substitute.For<ITaskQueue>(), Substitute.For<NotificationsHub>(), context);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using AwesomeAssertions;
@@ -28,7 +28,7 @@ namespace Rnwood.Smtp4dev.Tests.DBMigrations
 
             using (new FakeLocalTimeZone(GetTimeZoneInfo(timeZone)))
             {
-                using (var context = new Smtp4devDbContext(_sqlLiteForTesting.ContextOptions))
+                using (var context = new SqliteSmtp4devDbContext(_sqlLiteForTesting.ContextOptions))
                 {
                     context.Messages.Add(new Message {From = "test"});
                     context.SaveChanges();
@@ -58,7 +58,7 @@ SET ReceivedDate = DATETIME('{testDate:yyyy-MM-dd HH:mm:ss}');
 
             using (new FakeLocalTimeZone(GetTimeZoneInfo(timeZone)))
             {
-                using var context = new Smtp4devDbContext(_sqlLiteForTesting.ContextOptions);
+                using var context = new SqliteSmtp4devDbContext(_sqlLiteForTesting.ContextOptions);
                 context.Messages.Add(new Message {From = "test"});
                 context.Sessions.Add(new Session {Id = Guid.NewGuid(), Log = "Log"});
                 context.SaveChanges();

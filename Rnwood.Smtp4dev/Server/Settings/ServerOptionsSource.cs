@@ -21,6 +21,8 @@ namespace Rnwood.Smtp4dev.Server.Settings
 
         public string Database { get; set; }
 
+        public Data.DatabaseProvider? DatabaseProvider { get; set; }
+
         public int? NumberOfMessagesToKeep { get; set; }
         public int? NumberOfSessionsToKeep { get; set; }
 

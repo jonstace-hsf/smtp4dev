@@ -1,4 +1,4 @@
-﻿using MimeKit;
+using MimeKit;
 using NSubstitute;
 using Rnwood.Smtp4dev.Controllers;
 using Rnwood.Smtp4dev.Data;
@@ -19,7 +19,7 @@ namespace Rnwood.Smtp4dev.Tests.Data
         public async Task CanDeleteSessionWhenMessageExist()
         {
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             DbModel.Session session = new DbModel.Session();
             context.Add(session);

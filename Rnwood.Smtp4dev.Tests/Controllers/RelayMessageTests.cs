@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ namespace Rnwood.Smtp4dev.Tests.Controllers
             server = Substitute.For<ISmtp4devServer>();
             controller = new MessagesController(messagesRepository, server, new MimeProcessingService());
             var sqlLiteForTesting = new SqliteInMemory();
-            context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
             InitRepo();
             messagesRepository.GetMessages(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>())
                 .Returns(context.Messages);

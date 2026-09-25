@@ -8,7 +8,7 @@ namespace Rnwood.Smtp4dev.Data
 {
     public class Smtp4devDbContext : DbContext
     {
-        public Smtp4devDbContext(DbContextOptions<Smtp4devDbContext> options)
+        public Smtp4devDbContext(DbContextOptions options)
             : base(options)
         {
 

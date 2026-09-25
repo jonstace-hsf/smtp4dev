@@ -105,7 +105,37 @@ namespace Rnwood.Smtp4dev
 
             ServerOptions serverOptions = Configuration.GetSection("ServerOptions").Get<ServerOptions>();
 
-            services.AddDbContext<Smtp4devDbContext>(opt =>
+            if (serverOptions.DatabaseProvider == Rnwood.Smtp4dev.Data.DatabaseProvider.SqlServer)
+            {
+                if (string.IsNullOrEmpty(serverOptions.Database))
+                {
+                    throw new InvalidOperationException(
+                        "DatabaseProvider is set to SqlServer but ServerOptions.Database (connection string) is empty. " +
+                        "Provide a full ADO.NET connection string in ServerOptions.Database.");
+                }
+
+                Log.Logger.Information("Using SQL Server database for message storage");
+
+                services.AddDbContext<Smtp4devDbContext, SqlServerSmtp4devDbContext>(opt =>
+                    {
+                        opt.UseSqlServer(serverOptions.Database);
+
+                        using var context = new SqlServerSmtp4devDbContext(
+                            (DbContextOptions<SqlServerSmtp4devDbContext>)opt.Options);
+
+                        if (serverOptions.RecreateDb)
+                        {
+                            Log.Logger.Information("Recreating SQL Server database (RecreateDb=true)");
+                            context.Database.EnsureDeleted();
+                        }
+
+                        InitializeDatabase(context, serverOptions.Database);
+
+                    }, ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+            }
+            else
+            {
+                services.AddDbContext<Smtp4devDbContext, SqliteSmtp4devDbContext>(opt =>
                     {
                         if (string.IsNullOrEmpty(serverOptions.Database))
                         {
@@ -125,7 +155,7 @@ namespace Rnwood.Smtp4dev
                                 File.Delete(dbLocation);
                             }
 
-                            Log.Logger.Information("Using SQLite database. Location: {dbLocation}, FileExists: {fileExists}", 
+                            Log.Logger.Information("Using SQLite database. Location: {dbLocation}, FileExists: {fileExists}",
                                 dbLocation, File.Exists(dbLocation));
 
                             opt.UseSqlite($"Data Source={dbLocation}");
@@ -133,131 +163,13 @@ namespace Rnwood.Smtp4dev
 
 
 
-                        using var context = new Smtp4devDbContext((DbContextOptions<Smtp4devDbContext>)opt.Options);
+                        using var context = new SqliteSmtp4devDbContext(
+                            (DbContextOptions<SqliteSmtp4devDbContext>)opt.Options);
 
-                        // Validate database version compatibility before attempting any operations
-                        ValidateDatabaseVersionCompatibility(context);
-
-                        if (string.IsNullOrEmpty(serverOptions.Database))
-                        {
-                            context.Database.Migrate();
-                            context.SaveChanges();
-                        }
-                        else
-                        {
-
-                            var pendingMigrations = context.Database.GetPendingMigrations();
-                            if (pendingMigrations.Any())
-                            {
-                                Log.Logger.Information("Applying database migrations. MigrationCount: {count}, Migrations: {migrations}", 
-                                    pendingMigrations.Count(), string.Join(", ", pendingMigrations));
-                                context.Database.Migrate();
-                                context.SaveChanges();
-                                Log.Logger.Information("Database migrations completed successfully");
-                            }
-                        }
-
-                        if (!context.ImapState.Any())
-                        {
-                            context.Add(new ImapState
-                            {
-                                Id = Guid.Empty,
-                                LastUid = 0
-                            });
-                            context.SaveChanges();
-                        }
-                        else
-                        {
-                            // Fix existing databases that may have incorrect LastUid initialization
-                            // or messages with invalid ImapUid values
-                            var imapState = context.ImapState.Single();
-                            var maxImapUid = context.Messages.Any() ? context.Messages.Max(m => m.ImapUid) : 0;
-                            
-                            // If there are no messages but LastUid > 0, reset it to 0 to avoid skipping UIDs
-                            if (!context.Messages.Any() && imapState.LastUid > 0)
-                            {
-                                Log.Logger.Information("Resetting ImapState.LastUid from {oldValue} to 0 (no messages in database)", 
-                                    imapState.LastUid);
-                                imapState.LastUid = 0;
-                                context.SaveChanges();
-                            }
-                            // If LastUid is inconsistent with actual message UIDs, fix it
-                            else if (maxImapUid > imapState.LastUid)
-                            {
-                                Log.Logger.Information("Fixing ImapState.LastUid from {oldValue} to {newValue} based on existing messages", 
-                                    imapState.LastUid, maxImapUid);
-                                imapState.LastUid = maxImapUid;
-                                context.SaveChanges();
-                            }
-                            
-                            // Fix any messages with invalid ImapUid (0 or negative)
-                            var messagesWithInvalidUid = context.Messages.Where(m => m.ImapUid < 1).ToList();
-                            if (messagesWithInvalidUid.Any())
-                            {
-                                Log.Logger.Warning("Found {count} messages with invalid ImapUid (<= 0). Reassigning UIDs.", 
-                                    messagesWithInvalidUid.Count);
-                                
-                                foreach (var message in messagesWithInvalidUid.OrderBy(m => m.ReceivedDate))
-                                {
-                                    imapState.LastUid++;
-                                    message.ImapUid = imapState.LastUid;
-                                    Log.Logger.Information("Reassigned message {messageId} to ImapUid {imapUid}", 
-                                        message.Id, message.ImapUid);
-                                }
-                                context.SaveChanges();
-                            }
-                        }
-
-                        //For message before delivered to was added, assume all recipients.
-                        foreach (var m in context.Messages.Where(m => m.DeliveredTo == null))
-                        {
-                            m.DeliveredTo = m.To;
-                        }
-                        context.SaveChanges();
-
-                        // Populate MIME metadata for existing messages synchronously during startup
-                        var messagesWithoutMetadata = context.Messages
-                            .Where(m => string.IsNullOrEmpty(m.MimeMetadata) || string.IsNullOrEmpty(m.BodyText))
-                            .ToList();
-
-                        if (messagesWithoutMetadata.Any())
-                        {
-                            Log.Logger.Information("Populating MIME metadata for {count} existing messages during startup", messagesWithoutMetadata.Count);
-                            var mimeProcessingService = new MimeProcessingService();
-
-                            int processed = 0;
-                            int batchSize = 50; // Process in batches to avoid memory issues
-
-                            foreach (var batch in messagesWithoutMetadata.Chunk(batchSize))
-                            {
-                                foreach (var message in batch)
-                                {
-                                    try
-                                    {
-                                        var (mimeMetadata, bodyText) = mimeProcessingService.ExtractMimeDataFromMessage(message);
-                                        message.MimeMetadata = JsonSerializer.Serialize(mimeMetadata);
-                                        message.BodyText = bodyText;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Log.Logger.Warning(ex, "Failed to extract MIME metadata. MessageId: {messageId}, ExceptionType: {exceptionType}", 
-                                            message.Id, ex.GetType().Name);
-                                        // Set fallback values
-                                        message.MimeMetadata = JsonSerializer.Serialize(new Server.MimeMetadata());
-                                        message.BodyText = Encoding.UTF8.GetString(message.Data);
-                                    }
-                                }
-
-                                context.SaveChanges();
-                                processed += batch.Length;
-                                Log.Logger.Information("Processed {processed}/{total} messages", processed, messagesWithoutMetadata.Count);
-                            }
-
-                            Log.Logger.Information("Successfully populated MIME metadata for all existing messages during startup");
-                        }
-
+                        InitializeDatabase(context, serverOptions.Database);
 
                     }, ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+            }
 
 
             services.AddSingleton<ISmtp4devServer, Smtp4devServer>();
@@ -439,6 +351,129 @@ namespace Rnwood.Smtp4dev
             else
             {
                 configure(app);
+            }
+        }
+
+        private static void InitializeDatabase(Smtp4devDbContext context, string database)
+        {
+            // Validate database version compatibility before attempting any operations
+            ValidateDatabaseVersionCompatibility(context);
+
+            if (string.IsNullOrEmpty(database))
+            {
+                context.Database.Migrate();
+                context.SaveChanges();
+            }
+            else
+            {
+                var pendingMigrations = context.Database.GetPendingMigrations();
+                if (pendingMigrations.Any())
+                {
+                    Log.Logger.Information("Applying database migrations. MigrationCount: {count}, Migrations: {migrations}",
+                        pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+                    context.Database.Migrate();
+                    context.SaveChanges();
+                    Log.Logger.Information("Database migrations completed successfully");
+                }
+            }
+
+            if (!context.ImapState.Any())
+            {
+                context.Add(new ImapState
+                {
+                    Id = Guid.Empty,
+                    LastUid = 0
+                });
+                context.SaveChanges();
+            }
+            else
+            {
+                // Fix existing databases that may have incorrect LastUid initialization
+                // or messages with invalid ImapUid values
+                var imapState = context.ImapState.Single();
+                var maxImapUid = context.Messages.Any() ? context.Messages.Max(m => m.ImapUid) : 0;
+
+                // If there are no messages but LastUid > 0, reset it to 0 to avoid skipping UIDs
+                if (!context.Messages.Any() && imapState.LastUid > 0)
+                {
+                    Log.Logger.Information("Resetting ImapState.LastUid from {oldValue} to 0 (no messages in database)",
+                        imapState.LastUid);
+                    imapState.LastUid = 0;
+                    context.SaveChanges();
+                }
+                // If LastUid is inconsistent with actual message UIDs, fix it
+                else if (maxImapUid > imapState.LastUid)
+                {
+                    Log.Logger.Information("Fixing ImapState.LastUid from {oldValue} to {newValue} based on existing messages",
+                        imapState.LastUid, maxImapUid);
+                    imapState.LastUid = maxImapUid;
+                    context.SaveChanges();
+                }
+
+                // Fix any messages with invalid ImapUid (0 or negative)
+                var messagesWithInvalidUid = context.Messages.Where(m => m.ImapUid < 1).ToList();
+                if (messagesWithInvalidUid.Any())
+                {
+                    Log.Logger.Warning("Found {count} messages with invalid ImapUid (<= 0). Reassigning UIDs.",
+                        messagesWithInvalidUid.Count);
+
+                    foreach (var message in messagesWithInvalidUid.OrderBy(m => m.ReceivedDate))
+                    {
+                        imapState.LastUid++;
+                        message.ImapUid = imapState.LastUid;
+                        Log.Logger.Information("Reassigned message {messageId} to ImapUid {imapUid}",
+                            message.Id, message.ImapUid);
+                    }
+                    context.SaveChanges();
+                }
+            }
+
+            //For message before delivered to was added, assume all recipients.
+            foreach (var m in context.Messages.Where(m => m.DeliveredTo == null))
+            {
+                m.DeliveredTo = m.To;
+            }
+            context.SaveChanges();
+
+            // Populate MIME metadata for existing messages synchronously during startup
+            var messagesWithoutMetadata = context.Messages
+                .Where(m => string.IsNullOrEmpty(m.MimeMetadata) || string.IsNullOrEmpty(m.BodyText))
+                .ToList();
+
+            if (messagesWithoutMetadata.Any())
+            {
+                Log.Logger.Information("Populating MIME metadata for {count} existing messages during startup", messagesWithoutMetadata.Count);
+                var mimeProcessingService = new MimeProcessingService();
+
+                int processed = 0;
+                int batchSize = 50; // Process in batches to avoid memory issues
+
+                foreach (var batch in messagesWithoutMetadata.Chunk(batchSize))
+                {
+                    foreach (var message in batch)
+                    {
+                        try
+                        {
+                            var (mimeMetadata, bodyText) = mimeProcessingService.ExtractMimeDataFromMessage(message);
+                            message.MimeMetadata = JsonSerializer.Serialize(mimeMetadata);
+                            message.BodyText = bodyText;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Logger.Warning(ex, "Failed to extract MIME metadata. MessageId: {messageId}, ExceptionType: {exceptionType}",
+                                message.Id, ex.GetType().Name);
+                            // Set fallback values
+                            message.MimeMetadata = JsonSerializer.Serialize(new Server.MimeMetadata());
+                            message.BodyText = Encoding.UTF8.GetString(message.Data);
+                        }
+                    }
+
+                    context.SaveChanges();
+                    processed += batch.Length;
+                    Log.Logger.Information("Processed {processed}/{total} messages", processed, messagesWithoutMetadata.Count);
+                }
+
+                Log.Logger.Information("Successfully populated MIME metadata for all existing messages during startup");
             }
         }
     }

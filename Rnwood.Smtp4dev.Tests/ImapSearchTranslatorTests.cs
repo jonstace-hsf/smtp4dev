@@ -1,4 +1,4 @@
-﻿using MimeKit;
+using MimeKit;
 using Rnwood.Smtp4dev.Data;
 using Rnwood.Smtp4dev.Server.Settings;
 using Rnwood.Smtp4dev.Server;
@@ -43,7 +43,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -71,7 +71,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2", to: "to2@to.com");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3", to: "to3@to.com");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -100,7 +100,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2", from: "to2@to.com");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3", from: "to3@to.com");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -128,7 +128,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2", unread: true);
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3", unread: false);
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -150,7 +150,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2", unread: true);
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3", unread: false);
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -172,7 +172,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -194,7 +194,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -221,7 +221,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -251,7 +251,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -277,7 +277,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message veryRecentMessage = await GetTestMessage("Very recent message", receivedDate: DateTime.Now.AddMinutes(-5));
             
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(oldMessage, recentMessage, veryRecentMessage);
             context.SaveChanges();
@@ -313,7 +313,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message veryRecentMessage = await GetTestMessage("Very recent message", receivedDate: DateTime.Now.AddMinutes(-5));
             
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(oldMessage, recentMessage, veryRecentMessage);
             context.SaveChanges();
@@ -347,7 +347,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage2 = await GetTestMessage("Message subject2");
             DbModel.Message testMessage3 = await GetTestMessage("Message subject3");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3);
             context.SaveChanges();
@@ -383,7 +383,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage4 = await GetTestMessage("Message subject4");
             DbModel.Message testMessage5 = await GetTestMessage("Message subject5");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3, testMessage4, testMessage5);
             context.SaveChanges();
@@ -422,7 +422,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage4 = await GetTestMessage("Message subject4");
             DbModel.Message testMessage5 = await GetTestMessage("Message subject5");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3, testMessage4, testMessage5);
             context.SaveChanges();
@@ -462,7 +462,7 @@ namespace Rnwood.Smtp4dev.Tests
             DbModel.Message testMessage5 = await GetTestMessage("Message subject5");
             DbModel.Message testMessage6 = await GetTestMessage("Message subject6");
             var sqlLiteForTesting = new SqliteInMemory();
-            var context = new Smtp4devDbContext(sqlLiteForTesting.ContextOptions);
+            var context = new SqliteSmtp4devDbContext(sqlLiteForTesting.ContextOptions);
 
             context.AddRange(testMessage1, testMessage2, testMessage3, testMessage4, testMessage5, testMessage6);
             context.SaveChanges();
