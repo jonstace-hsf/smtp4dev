@@ -1,20 +1,5 @@
 trigger:
-  branches:
-    include:
-      - master
-      - refs/tags/*.*.*
-      - refs/tags/*.*.*.*
-    exclude:
-      - refs/tags/*-ci*
-
-pr:
-  branches:
-    include:
-      - master
-  paths:
-    exclude:
-      - docs/*
-      - README.md
+  none
 
 resources:
   - repo: self
