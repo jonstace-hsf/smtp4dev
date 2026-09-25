@@ -32,6 +32,7 @@ namespace Rnwood.Smtp4dev
                 { "disableipv6", "If true, SMTP and IMAP servers will NOT listen using IPv6 Dual Stack", data => map.Add((data !=null).ToString(), x => x.ServerOptions.DisableIPv6)},
                 { "smtpport=", "Set the port the SMTP server listens on. Specify 0 to assign automatically", data => map.Add(data, x => x.ServerOptions.Port) },
                 { "db=", "Specifies the path where the database will be stored relative to APPDATA env var on Windows or XDG_CONFIG_HOME on non-Windows. Specify \"\" to use an in memory database.", data => map.Add(data, x => x.ServerOptions.Database) },
+                { "databaseprovider=", "Specifies the database provider to use. Valid options: Sqlite (default), SqlServer. When SqlServer, --db specifies a full ADO.NET connection string.", data => map.Add(data, x => x.ServerOptions.DatabaseProvider) },
                 { "messagestokeep=", "Specifies the number of messages to keep per mailbox", data => map.Add(data, x => x.ServerOptions.NumberOfMessagesToKeep) },
                 { "sessionstokeep=", "Specifies the number of sessions to keep", data => map.Add(data, x => x.ServerOptions.NumberOfSessionsToKeep) },
                 { "tlsmode=", "Specifies the TLS mode to use for SMTP only. (POP3 uses --pop3tlsmode). Valid options: None, StartTls, ImplicitTls.", data => map.Add(data, x => x.ServerOptions.TlsMode) },
